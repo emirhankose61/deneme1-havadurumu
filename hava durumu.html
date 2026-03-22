@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="tr" data-theme="ocean">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hava Durumu (Open‑Meteo)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* =====================
+       TEMA + ANİMASYONLAR
+       ===================== */
+        :root {
+            --bg: #0b1020;
+            --fg: #e8eef9;
+            --muted: #a1aecb;
+            --card: #0f172a;
+            --acc: #6366f1;
+            --grad1: #3b82f6;
+            --grad2: #22d3ee;
+            --grad3: #a78bfa;
+            --ring: color-mix(in srgb, var(--acc) 40%, transparent);
+            --shadow: 0 10px 30px -12px color-mix(in srgb, var(--acc) 35%, transparent);
+            --row-alt: #0d1426;
+            --row-hover: #111a2f;
+        }
+
+        [data-theme="sunset"] {
+            --acc: #f97316;
+            --grad1: #fb7185;
+            --grad2: #f59e0b;
+            --grad3: #f472b6;
+            --card: #1a1414;
+            --row-alt: #181012;
+            --row-hover: #221517
+        }
+
+        [data-theme="emerald"] {
+            --acc: #10b981;
+            --grad1: #34d399;
+            --grad2: #22c55e;
+            --grad3: #06b6d4;
+            --card: #0f1a16;
+            --row-alt: #0e1713;
+            --row-hover: #12201b
+        }
+
+        [data-theme="amber"] {
+            --acc: #f59e0b;
+            --grad1: #fde047;
+            --grad2: #f59e0b;
+            --grad3: #fb7185;
+            --card: #1a160f;
+            --row-alt: #17120c;
+            --row-hover: #221a11
+        }
+
+        [data-theme="rose"] {
+            --acc: #fb7185;
+            --grad1: #f472b6;
+            --grad2: #fb7185;
+            --grad3: #a78bfa;
+            --card: #1a0f16;
+            --row-alt: #170d13;
+            --row-hover: #22141b
+        }
+
+        [data-theme="violet"] {
+            --acc: #8b5cf6;
+            --grad1: #8b5cf6;
+            --grad2: #22d3ee;
+            --grad3: #60a5fa;
+            --card: #140f1a;
+            --row-alt: #120f16;
+            --row-hover: #1c1522
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            overflow-x: hidden
+        }
+
+        /* Animasyonlu yumuşak renk bulutları */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            opacity: .23;
+            filter: blur(60px) saturate(140%);
+            background:
+                radial-gradient(48vw 48vw at 10% 15%, var(--grad1), transparent 60%),
+                radial-gradient(42vw 42vw at 80% 10%, var(--grad2), transparent 60%),
+                radial-gradient(36vw 36vw at 50% 85%, var(--grad3), transparent 60%);
+            animation: float 18s ease-in-out infinite alternate;
+        }
+
+        @keyframes float {
+            from {
+                transform: translateY(0) scale(1)
+            }
+
+            to {
+                transform: translateY(-20px) scale(1.03)
+            }
+        }
+
+        header {
+            top: 0;
+            backdrop-filter: saturate(180%) blur(12px);
+            background: #0e1117cc;
+            border-bottom: 1px solid #1f2430
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: auto;
+            padding: 18px
+        }
+
+        h1 {
+            font-size: 22px;
+            margin: 0;
+            display: flex;
+            gap: 10px;
+            align-items: center
+        }
+
+        h1 .tag {
+            font-size: 12px;
+            padding: 2px 8px;
+            border: 1px solid #273142;
+            border-radius: 999px;
+            color: var(--muted);
+            background: linear-gradient(135deg, color-mix(in srgb, var(--grad1) 30%, transparent), color-mix(in srgb, var(--grad2) 30%, transparent));
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 24px auto;
+            padding: 0 18px 56px
+        }
+
+        /* Tema seçici */
+        .themes {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px
+        }
+
+        .swatches {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .swatch {
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            border: 1px solid #273142;
+            cursor: pointer;
+            outline: none;
+            display: inline-block;
+            transition: transform .15s ease, box-shadow .2s ease
+        }
+
+        .swatch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px -12px var(--ring)
+        }
+
+        .swatch[data-theme="ocean"] {
+            background: linear-gradient(135deg, #3b82f6, #22d3ee)
+        }
+
+        .swatch[data-theme="sunset"] {
+            background: linear-gradient(135deg, #fb7185, #f59e0b)
+        }
+
+        .swatch[data-theme="emerald"] {
+            background: linear-gradient(135deg, #34d399, #22c55e)
+        }
+
+        .swatch[data-theme="amber"] {
+            background: linear-gradient(135deg, #fde047, #f59e0b)
+        }
+
+        .swatch[data-theme="rose"] {
+            background: linear-gradient(135deg, #f472b6, #fb7185)
+        }
+
+        .swatch[data-theme="violet"] {
+            background: linear-gradient(135deg, #8b5cf6, #22d3ee)
+        }
+
+        form {
+            display: flex;
+            gap: 10px
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid #2a3242;
+            background: #0c111b;
+            color: var(--fg);
+            transition: border-color .2s ease, box-shadow .2s ease
+        }
+
+        input:focus {
+            outline: none;
+            border-color: color-mix(in srgb, var(--acc) 55%, #2a3242);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--acc) 22%, transparent)
+        }
+
+        button {
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid #2a3242;
+            background: linear-gradient(180deg, #151b2b, #0f1422);
+            color: var(--fg);
+            cursor: pointer;
+            transition: transform .15s ease, box-shadow .25s ease, border-color .2s ease
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: color-mix(in srgb, var(--acc) 55%, #2a3242)
+        }
+
+        button:active {
+            transform: translateY(0)
+        }
+
+        /* Favori butonu: ikon ve yazı arasında boşluk */
+        .favBtn {
+            margin-top: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-weight: 600
+        }
+
+        .favBtn .star {
+            font-size: 16px;
+            line-height: 1
+        }
+
+        .status {
+            margin-top: 10px;
+            color: var(--muted)
+        }
+
+        .status.error {
+            color: #ff6b6b
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px
+        }
+
+        /* Kartlar: gradient kenarlık + hover efekti */
+        .card {
+            position: relative;
+            background:
+                linear-gradient(var(--card), var(--card)) padding-box,
+                linear-gradient(135deg, color-mix(in srgb, var(--grad1) 45%, transparent), color-mix(in srgb, var(--grad2) 45%, transparent)) border-box;
+            border: 1px solid transparent;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
+            transition: transform .2s ease, box-shadow .25s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 14px 38px -18px color-mix(in srgb, var(--acc) 45%, transparent)
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .card h2 {
+            margin: 0 0 6px 0;
+            font-size: 18px
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .forecast {
+            margin-top: 18px
+        }
+
+        .forecast h3 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            color: var(--muted)
+        }
+
+        .day {
+            background: #0f1523;
+            border: 1px solid #1f2636;
+            border-radius: 14px;
+            padding: 12px;
+            transition: transform .2s ease, box-shadow .25s ease;
+            animation: fadeUp .5s ease both
+        }
+
+        .day:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 34px -18px color-mix(in srgb, var(--acc) 45%, transparent)
+        }
+
+        .date {
+            font-weight: 600;
+            margin-bottom: 6px
+        }
+
+        .temp {
+            margin-bottom: 2px
+        }
+
+        .grid .day:nth-child(1) {
+            animation-delay: .02s
+        }
+
+        .grid .day:nth-child(2) {
+            animation-delay: .06s
+        }
+
+        .grid .day:nth-child(3) {
+            animation-delay: .1s
+        }
+
+        .grid .day:nth-child(4) {
+            animation-delay: .14s
+        }
+
+        .grid .day:nth-child(5) {
+            animation-delay: .18s
+        }
+
+        .grid .day:nth-child(6) {
+            animation-delay: .22s
+        }
+
+        .grid .day:nth-child(7) {
+            animation-delay: .26s
+        }
+
+        /* ===== SAATLİK TABLO ===== */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 6px 0 14px
+        }
+
+        select {
+            background: #0c111b;
+            color: var(--fg);
+            border: 1px solid #2a3242;
+            border-radius: 12px;
+            padding: 8px 10px
+        }
+
+        .tableWrap {
+            border-radius: 14px;
+            border: 1px solid #1f2636;
+            overflow: auto;
+            max-height: 420px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background: linear-gradient(180deg, #121a2e, #0e1526);
+            color: var(--muted);
+            text-align: left;
+            font-weight: 600;
+            letter-spacing: .2px
+        }
+
+        th,
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #1f2636;
+            white-space: nowrap
+        }
+
+        tbody tr:nth-child(even) {
+            background: var(--row-alt)
+        }
+
+        tbody tr:hover {
+            background: var(--row-hover)
+        }
+
+        .chip {
+            display: inline-block;
+            border: 1px solid #273142;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 12px
+        }
+
+        /* İkon ve rüzgar yönü stilleri */
+        .wxIcon {
+            font-size: 28px;
+            line-height: 1
+        }
+
+        .wxIcon.sm {
+            font-size: 18px;
+            vertical-align: -2px;
+            margin-right: 6px
+        }
+
+        .arrow {
+            display: inline-block;
+            transform: rotate(var(--deg, 0deg));
+            margin-left: 6px
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="wrap">
+            <h1>Hava Durumu (Open‑Meteo) <span class="tag"></span></h1>
+            <div class="themes">
+                <span class="muted">Tema:</span>
+                <div class="swatches">
+                    <button class="swatch" data-theme="ocean" title="Ocean"></button>
+                    <button class="swatch" data-theme="sunset" title="Sunset"></button>
+                    <button class="swatch" data-theme="emerald" title="Emerald"></button>
+                    <button class="swatch" data-theme="amber" title="Amber"></button>
+                    <button class="swatch" data-theme="rose" title="Rose"></button>
+                    <button class="swatch" data-theme="violet" title="Violet"></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="card" aria-label="Şehir arama">
+            <form id="searchForm">
+                <input id="cityInput" placeholder="Şehir adı yaz (örn: İzmir, Ankara)" autocomplete="off" />
+                <button type="submit">Ara</button>
+            </form>
+            <div id="status" class="status"></div>
+        </section>
+
+        <section id="current" class="card" aria-live="polite" aria-busy="false" style="margin-top:12px"></section>
+
+        <section id="forecast" class="forecast" aria-live="polite"></section>
+
+        <!-- SAATLİK TABLO ALANI -->
+        <section id="hourly" class="card" aria-live="polite" style="margin-top:12px">
+            <h2 style="margin-bottom:8px">Saatlik Tahmin</h2>
+            <div class="toolbar">
+                <label class="muted" for="hourDay">Gün:</label>
+                <select id="hourDay"></select>
+                <span class="muted">(Yerel saat)</span>
+            </div>
+            <div class="tableWrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Saat</th>
+                            <th>Sıcaklık</th>
+                            <th>Hissedilen</th>
+                            <th>Nem</th>
+                            <th>Rüzgar</th>
+                            <th>Yağış Olasılığı</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hourRows"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <aside id="favorites" aria-label="Favori şehirler"></aside>
+
+    </main>
+
+    <script>
+        const GEOCODE_URL = 'https://geocoding-api.open-meteo.com/v1/search';
+        const WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
+
+        const $ = (sel, root = document) => root.querySelector(sel);
+        function setStatus(msg, isError = false) { const s = $('#status'); s.textContent = msg || ''; s.className = 'status' + (isError ? ' error' : ''); }
+
+        // Tema kalıcı olsun
+        const THEME_KEY = 'theme';
+        function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); localStorage.setItem(THEME_KEY, t); }
+
+        // Şehir geocoding
+        async function geocodeCity(name, count = 1) {
+            const url = `${GEOCODE_URL}?name=${encodeURIComponent(name)}&count=${count}&language=tr&format=json`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('Geocoding isteği başarısız');
+            const data = await res.json();
+            if (!data.results || data.results.length === 0) throw new Error('Şehir bulunamadı');
+            return data.results;
+        }
+
+        // Hava durumu
+        async function fetchWeather(lat, lon) {
+            const q = new URLSearchParams({
+                latitude: lat, longitude: lon,
+                current: 'temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,wind_direction_10m,weather_code',
+                daily: 'temperature_2m_max,temperature_2m_min,precipitation_probability_mean',
+                hourly: 'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,precipitation_probability,weather_code',
+                timezone: 'auto'
+            });
+            const res = await fetch(`${WEATHER_URL}?${q.toString()}`);
+            if (!res.ok) throw new Error('Hava durumu isteği başarısız');
+            return res.json();
+        }
+
+        // === İkon ve rüzgar yönü yardımcıları ===
+        const ICON = { 0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 48: '🌫️', 51: '🌦️', 53: '🌦️', 55: '🌦️', 56: '🌧️', 57: '🌧️', 61: '🌧️', 63: '🌧️', 65: '🌧️', 66: '🌧️', 67: '🌧️', 71: '❄️', 73: '❄️', 75: '❄️', 77: '🌨️', 80: '🌧️', 81: '🌧️', 82: '🌧️', 85: '🌨️', 86: '🌨️', 95: '⛈️', 96: '⛈️', 99: '⛈️' };
+        function getIcon(code) { return ICON[code] ?? '❓'; }
+        function degToCompass(deg) { const dirs = ['K', 'KKD', 'KD', 'DKD', 'D', 'DGD', 'GD', 'GGD', 'G', 'GGB', 'GB', 'BGB', 'B', 'BKB', 'KB', 'KKB']; if (typeof deg !== 'number' || isNaN(deg)) return '-'; return dirs[Math.round(deg / 22.5) % 16]; }
+
+        // Render: Güncel
+        function renderCurrent(city, data) {
+            const { current, latitude, longitude, timezone_abbreviation } = data;
+            const el = $('#current');
+            el.setAttribute('aria-busy', 'false');
+            el.innerHTML = `
+        <h2 style="margin:0 0 8px 0">${city.name}${city.country ? ', ' + city.country : ''}</h2>
+        <div class="muted">Koordinatlar: ${latitude.toFixed(3)}, ${longitude.toFixed(3)} • Zaman Dilimi: ${timezone_abbreviation}</div>
+        <div style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+          <div class="day"><div class="date">Durum</div><div class="temp"><span class="wxIcon">${getIcon(current.weather_code)}</span></div></div>
+          <div class="day"><div class="date">Sıcaklık</div><div class="temp">${current.temperature_2m}°C</div></div>
+          <div class="day"><div class="date">Hissedilen</div><div class="temp">${current.apparent_temperature}°C</div></div>
+          <div class="day"><div class="date">Nem</div><div class="temp">${current.relative_humidity_2m}%</div></div>
+          <div class="day"><div class="date">Rüzgar</div><div class="temp">${current.wind_speed_10m} km/s <span class="muted">• ${degToCompass(current.wind_direction_10m ?? 0)}</span> <span class="arrow" style="--deg:${current.wind_direction_10m ?? 0}deg">↑</span></div></div>
+        </div>
+        <button class="favBtn" id="addFavBtn"><span class="star" aria-hidden="true">⭐</span><span>Favorilere Ekle</span></button>
+      `;
+            $('#addFavBtn')?.addEventListener('click', () => addFavorite(city));
+        }
+
+        // Render: Günlük tahmin
+        function renderForecast(data) {
+            const d = data.daily;
+            const cards = d.time.map((t, i) => `
+        <div class="day">
+          <div class="date">${t}</div>
+          <div class="temp">Min ${d.temperature_2m_min[i]}° / Max ${d.temperature_2m_max[i]}°</div>
+          <div class="muted">Yağış olasılığı: %${d.precipitation_probability_mean?.[i] ?? 0}</div>
+        </div>
+      `).join('');
+            $('#forecast').innerHTML = `<h3>7 Günlük Tahmin</h3><div class="grid">${cards}</div>`;
+        }
+
+        // ===== SAATLİK TABLO =====
+        function formatHour(s) {
+            try { return new Date(s).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); }
+            catch { return s.split('T')[1]?.slice(0, 5) || s; }
+        }
+        function formatDate(s) { return s.split('T')[0]; }
+
+        function renderHourlyTable(data) {
+            const h = data.hourly; if (!h || !h.time) { $('#hourRows').innerHTML = ''; return; }
+            const times = h.time;
+            const dates = [...new Set(times.map(formatDate))];
+            const daySel = $('#hourDay');
+            // Gün seçeneklerini doldur
+            daySel.innerHTML = dates.map(d => `<option value="${d}">${d}</option>`).join('');
+
+            // Varsayılan: en yakın saat hangi güne aitse onu seç
+            const now = Date.now();
+            let nearestIdx = 0, best = Infinity;
+            for (let i = 0; i < times.length; i++) {
+                const t = new Date(times[i]).getTime();
+                const diff = Math.abs(t - now);
+                if (diff < best) { best = diff; nearestIdx = i; }
+            }
+            const defaultDay = formatDate(times[nearestIdx]);
+            daySel.value = defaultDay;
+
+            const paint = () => {
+                const selected = daySel.value;
+                const rows = [];
+                for (let i = 0; i < times.length; i++) {
+                    if (formatDate(times[i]) !== selected) continue;
+                    rows.push(`
+            <tr>
+              <td><span class="chip">${formatHour(times[i])}</span></td>
+              <td><span class="wxIcon sm">${getIcon(h.weather_code?.[i])}</span> ${h.temperature_2m?.[i] ?? '-'}°C</td>
+              <td>${h.apparent_temperature?.[i] ?? '-'}°C</td>
+              <td>%${h.relative_humidity_2m?.[i] ?? '-'}</td>
+              <td>${h.wind_speed_10m?.[i] ?? '-'} km/s <span class="muted">• ${degToCompass(h.wind_direction_10m?.[i] ?? 0)}</span> <span class="arrow" style="--deg:${h.wind_direction_10m?.[i] ?? 0}deg">↑</span></td>
+              <td>%${h.precipitation_probability?.[i] ?? '-'}</td>
+            </tr>`);
+                }
+                $('#hourRows').innerHTML = rows.join('');
+            };
+
+            daySel.onchange = paint;
+            paint();
+        }
+
+        // Favoriler
+        const KEY = 'favCities';
+        const cityId = (c) => c.id ?? `${c.name}-${c.latitude}-${c.longitude}`;
+        const getFavs = () => JSON.parse(localStorage.getItem(KEY) || '[]');
+        const saveFavs = (arr) => { localStorage.setItem(KEY, JSON.stringify(arr)); renderFavorites(); };
+        function addFavorite(city) {
+            const favs = getFavs();
+            if (!favs.find(x => cityId(x) === cityId(city))) {
+                favs.push({ id: cityId(city), name: city.name, admin1: city.admin1, latitude: city.latitude, longitude: city.longitude });
+                saveFavs(favs);
+            }
+        }
+        function removeFavorite(id) { saveFavs(getFavs().filter(x => String(cityId(x)) !== String(id))); }
+        function renderFavorites() {
+            const favs = getFavs();
+            const root = $('#favorites');
+            if (!favs.length) { root.innerHTML = '<h3>Favori Şehirler</h3><p class="muted">Henüz favori eklenmedi.</p>'; return; }
+            root.innerHTML = '<h3>Favori Şehirler</h3>' + favs.map(c => `
+        <button class="pill" data-id="${cityId(c)}">${c.name}${c.admin1 ? ', ' + c.admin1 : ''}</button>
+        <button class="x" title="Sil" data-remove="${cityId(c)}">×</button>
+      `).join(' ');
+        }
+
+        // Olaylar
+        $('#searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const q = $('#cityInput').value.trim();
+            if (!q) { setStatus('Lütfen bir şehir yaz.'); return; }
+            await loadCityByName(q);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('#favorites .pill')) {
+                const id = e.target.dataset.id;
+                const fav = getFavs().find(x => String(cityId(x)) === String(id));
+                if (fav) loadCityDirect(fav);
+            }
+            if (e.target.matches('#favorites .x')) { removeFavorite(e.target.dataset.remove); }
+            if (e.target.matches('.swatch')) { applyTheme(e.target.dataset.theme); }
+        });
+
+        // Yükleyiciler
+        async function loadCityByName(name) {
+            try {
+                setStatus('Yükleniyor…');
+                $('#current').setAttribute('aria-busy', 'true');
+                const [city] = await geocodeCity(name, 1);
+                await loadCity(city);
+                setStatus('');
+            } catch (err) { setStatus('Hata: ' + err.message, true); }
+        }
+
+        async function loadCityDirect(city) {
+            try {
+                setStatus('Yükleniyor…');
+                $('#current').setAttribute('aria-busy', 'true');
+                const data = await fetchWeather(city.latitude, city.longitude);
+                renderCurrent(city, data);
+                renderForecast(data);
+                renderHourlyTable(data);
+                setStatus('');
+            } catch (err) { setStatus('Hata: ' + err.message, true); }
+        }
+
+        async function loadCity(city) {
+            const data = await fetchWeather(city.latitude, city.longitude);
+            renderCurrent(city, data);
+            renderForecast(data);
+            renderHourlyTable(data);
+        }
+
+        // Başlangıç
+        applyTheme(localStorage.getItem(THEME_KEY) || document.documentElement.getAttribute('data-theme') || 'ocean');
+        renderFavorites();
+        loadCityByName('Bandırma');
+    </script>
+</body>
+
+</html>
