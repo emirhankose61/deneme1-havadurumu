@@ -6,10 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Hava Durumu (Open‑Meteo)</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        /* =====================
-       TEMA + ANİMASYONLAR
-       ===================== */
+    <style>
         :root {
             --bg: #0b1020;
             --fg: #e8eef9;
@@ -91,8 +88,7 @@
             color: var(--fg);
             overflow-x: hidden
         }
-
-        /* Animasyonlu yumuşak renk bulutları */
+
         body::before {
             content: "";
             position: fixed;
@@ -152,8 +148,7 @@
             margin: 24px auto;
             padding: 0 18px 56px
         }
-
-        /* Tema seçici */
+
         .themes {
             display: flex;
             align-items: center;
@@ -247,8 +242,7 @@
         button:active {
             transform: translateY(0)
         }
-
-        /* Favori butonu: ikon ve yazı arasında boşluk */
+
         .favBtn {
             margin-top: 12px;
             display: inline-flex;
@@ -279,7 +273,6 @@
             gap: 12px
         }
 
-        /* Kartlar: gradient kenarlık + hover efekti */
         .card {
             position: relative;
             background:
@@ -379,7 +372,6 @@
             animation-delay: .26s
         }
 
-        /* ===== SAATLİK TABLO ===== */
         .toolbar {
             display: flex;
             align-items: center;
@@ -440,8 +432,7 @@
             padding: 2px 8px;
             font-size: 12px
         }
-
-        /* İkon ve rüzgar yönü stilleri */
+
         .wxIcon {
             font-size: 28px;
             line-height: 1
@@ -527,12 +518,11 @@
 
         const $ = (sel, root = document) => root.querySelector(sel);
         function setStatus(msg, isError = false) { const s = $('#status'); s.textContent = msg || ''; s.className = 'status' + (isError ? ' error' : ''); }
-
-        // Tema kalıcı olsun
+
         const THEME_KEY = 'theme';
         function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); localStorage.setItem(THEME_KEY, t); }
 
-        // Şehir geocoding
+        geocoding
         async function geocodeCity(name, count = 1) {
             const url = `${GEOCODE_URL}?name=${encodeURIComponent(name)}&count=${count}&language=tr&format=json`;
             const res = await fetch(url);
@@ -542,7 +532,7 @@
             return data.results;
         }
 
-        // Hava durumu
+       
         async function fetchWeather(lat, lon) {
             const q = new URLSearchParams({
                 latitude: lat, longitude: lon,
@@ -556,12 +546,12 @@
             return res.json();
         }
 
-        // === İkon ve rüzgar yönü yardımcıları ===
+      
         const ICON = { 0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 48: '🌫️', 51: '🌦️', 53: '🌦️', 55: '🌦️', 56: '🌧️', 57: '🌧️', 61: '🌧️', 63: '🌧️', 65: '🌧️', 66: '🌧️', 67: '🌧️', 71: '❄️', 73: '❄️', 75: '❄️', 77: '🌨️', 80: '🌧️', 81: '🌧️', 82: '🌧️', 85: '🌨️', 86: '🌨️', 95: '⛈️', 96: '⛈️', 99: '⛈️' };
         function getIcon(code) { return ICON[code] ?? '❓'; }
         function degToCompass(deg) { const dirs = ['K', 'KKD', 'KD', 'DKD', 'D', 'DGD', 'GD', 'GGD', 'G', 'GGB', 'GB', 'BGB', 'B', 'BKB', 'KB', 'KKB']; if (typeof deg !== 'number' || isNaN(deg)) return '-'; return dirs[Math.round(deg / 22.5) % 16]; }
 
-        // Render: Güncel
+       
         function renderCurrent(city, data) {
             const { current, latitude, longitude, timezone_abbreviation } = data;
             const el = $('#current');
@@ -581,7 +571,7 @@
             $('#addFavBtn')?.addEventListener('click', () => addFavorite(city));
         }
 
-        // Render: Günlük tahmin
+      
         function renderForecast(data) {
             const d = data.daily;
             const cards = d.time.map((t, i) => `
@@ -594,7 +584,7 @@
             $('#forecast').innerHTML = `<h3>7 Günlük Tahmin</h3><div class="grid">${cards}</div>`;
         }
 
-        // ===== SAATLİK TABLO =====
+
         function formatHour(s) {
             try { return new Date(s).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); }
             catch { return s.split('T')[1]?.slice(0, 5) || s; }
@@ -609,7 +599,7 @@
             // Gün seçeneklerini doldur
             daySel.innerHTML = dates.map(d => `<option value="${d}">${d}</option>`).join('');
 
-            // Varsayılan: en yakın saat hangi güne aitse onu seç
+           
             const now = Date.now();
             let nearestIdx = 0, best = Infinity;
             for (let i = 0; i < times.length; i++) {
@@ -642,7 +632,7 @@
             paint();
         }
 
-        // Favoriler
+       
         const KEY = 'favCities';
         const cityId = (c) => c.id ?? `${c.name}-${c.latitude}-${c.longitude}`;
         const getFavs = () => JSON.parse(localStorage.getItem(KEY) || '[]');
@@ -683,7 +673,7 @@
             if (e.target.matches('.swatch')) { applyTheme(e.target.dataset.theme); }
         });
 
-        // Yükleyiciler
+        
         async function loadCityByName(name) {
             try {
                 setStatus('Yükleniyor…');
@@ -713,7 +703,7 @@
             renderHourlyTable(data);
         }
 
-        // Başlangıç
+        
         applyTheme(localStorage.getItem(THEME_KEY) || document.documentElement.getAttribute('data-theme') || 'ocean');
         renderFavorites();
         loadCityByName('Bandırma');
