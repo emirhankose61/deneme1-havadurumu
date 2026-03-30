@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Hava Durumu (Open‑Meteo)</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <style>
+    <style>
         :root {
             --bg: #0b1020;
             --fg: #e8eef9;
@@ -88,7 +88,7 @@
             color: var(--fg);
             overflow-x: hidden
         }
-
+
         body::before {
             content: "";
             position: fixed;
@@ -148,7 +148,7 @@
             margin: 24px auto;
             padding: 0 18px 56px
         }
-
+
         .themes {
             display: flex;
             align-items: center;
@@ -242,7 +242,7 @@
         button:active {
             transform: translateY(0)
         }
-
+
         .favBtn {
             margin-top: 12px;
             display: inline-flex;
@@ -432,7 +432,7 @@
             padding: 2px 8px;
             font-size: 12px
         }
-
+
         .wxIcon {
             font-size: 28px;
             line-height: 1
@@ -483,7 +483,6 @@
 
         <section id="forecast" class="forecast" aria-live="polite"></section>
 
-        <!-- SAATLİK TABLO ALANI -->
         <section id="hourly" class="card" aria-live="polite" style="margin-top:12px">
             <h2 style="margin-bottom:8px">Saatlik Tahmin</h2>
             <div class="toolbar">
@@ -518,11 +517,10 @@
 
         const $ = (sel, root = document) => root.querySelector(sel);
         function setStatus(msg, isError = false) { const s = $('#status'); s.textContent = msg || ''; s.className = 'status' + (isError ? ' error' : ''); }
-
+
         const THEME_KEY = 'theme';
         function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); localStorage.setItem(THEME_KEY, t); }
 
-        geocoding
         async function geocodeCity(name, count = 1) {
             const url = `${GEOCODE_URL}?name=${encodeURIComponent(name)}&count=${count}&language=tr&format=json`;
             const res = await fetch(url);
@@ -532,7 +530,6 @@
             return data.results;
         }
 
-       
         async function fetchWeather(lat, lon) {
             const q = new URLSearchParams({
                 latitude: lat, longitude: lon,
@@ -546,12 +543,10 @@
             return res.json();
         }
 
-      
         const ICON = { 0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 48: '🌫️', 51: '🌦️', 53: '🌦️', 55: '🌦️', 56: '🌧️', 57: '🌧️', 61: '🌧️', 63: '🌧️', 65: '🌧️', 66: '🌧️', 67: '🌧️', 71: '❄️', 73: '❄️', 75: '❄️', 77: '🌨️', 80: '🌧️', 81: '🌧️', 82: '🌧️', 85: '🌨️', 86: '🌨️', 95: '⛈️', 96: '⛈️', 99: '⛈️' };
         function getIcon(code) { return ICON[code] ?? '❓'; }
         function degToCompass(deg) { const dirs = ['K', 'KKD', 'KD', 'DKD', 'D', 'DGD', 'GD', 'GGD', 'G', 'GGB', 'GB', 'BGB', 'B', 'BKB', 'KB', 'KKB']; if (typeof deg !== 'number' || isNaN(deg)) return '-'; return dirs[Math.round(deg / 22.5) % 16]; }
 
-       
         function renderCurrent(city, data) {
             const { current, latitude, longitude, timezone_abbreviation } = data;
             const el = $('#current');
@@ -571,7 +566,6 @@
             $('#addFavBtn')?.addEventListener('click', () => addFavorite(city));
         }
 
-      
         function renderForecast(data) {
             const d = data.daily;
             const cards = d.time.map((t, i) => `
@@ -584,7 +578,6 @@
             $('#forecast').innerHTML = `<h3>7 Günlük Tahmin</h3><div class="grid">${cards}</div>`;
         }
 
-
         function formatHour(s) {
             try { return new Date(s).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); }
             catch { return s.split('T')[1]?.slice(0, 5) || s; }
@@ -596,10 +589,8 @@
             const times = h.time;
             const dates = [...new Set(times.map(formatDate))];
             const daySel = $('#hourDay');
-            // Gün seçeneklerini doldur
             daySel.innerHTML = dates.map(d => `<option value="${d}">${d}</option>`).join('');
 
-           
             const now = Date.now();
             let nearestIdx = 0, best = Infinity;
             for (let i = 0; i < times.length; i++) {
@@ -632,7 +623,6 @@
             paint();
         }
 
-       
         const KEY = 'favCities';
         const cityId = (c) => c.id ?? `${c.name}-${c.latitude}-${c.longitude}`;
         const getFavs = () => JSON.parse(localStorage.getItem(KEY) || '[]');
@@ -655,7 +645,6 @@
       `).join(' ');
         }
 
-        // Olaylar
         $('#searchForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const q = $('#cityInput').value.trim();
@@ -673,7 +662,6 @@
             if (e.target.matches('.swatch')) { applyTheme(e.target.dataset.theme); }
         });
 
-        
         async function loadCityByName(name) {
             try {
                 setStatus('Yükleniyor…');
@@ -703,7 +691,6 @@
             renderHourlyTable(data);
         }
 
-        
         applyTheme(localStorage.getItem(THEME_KEY) || document.documentElement.getAttribute('data-theme') || 'ocean');
         renderFavorites();
         loadCityByName('Bandırma');
