@@ -449,6 +449,37 @@
             transform: rotate(var(--deg, 0deg));
             margin-left: 6px
         }
+
+        .suggestions-list {
+            position: absolute;
+            top: 60px;
+            left: 18px;
+            right: 18px;
+            background: var(--card);
+            border: 1px solid #2a3242;
+            border-radius: 12px;
+            z-index: 100;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: var(--shadow);
+        }
+
+        .suggestion-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #1f2636;
+            transition: background 0.2s;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background: var(--row-hover);
+            color: var(--acc);
+        }
     </style>
 </head>
 
@@ -471,11 +502,12 @@
     </header>
 
     <main>
-        <section class="card" aria-label="Şehir arama">
+        <section class="card" aria-label="Şehir arama" style="position: relative;">
             <form id="searchForm">
                 <input id="cityInput" placeholder="Şehir adı yaz (örn: İzmir, Ankara)" autocomplete="off" />
                 <button type="submit">Ara</button>
             </form>
+            <div id="suggestions" class="suggestions-list"></div>
             <div id="status" class="status"></div>
         </section>
 
@@ -694,6 +726,70 @@
         applyTheme(localStorage.getItem(THEME_KEY) || document.documentElement.getAttribute('data-theme') || 'ocean');
         renderFavorites();
         loadCityByName('Bandırma');
+
+        function debounce(func, timeout = 300) {
+            let timer;
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => { func.apply(this, args); }, timeout);
+            };
+        }
+
+        const suggestionsEl = $('#suggestions');
+        const cityInput = $('#cityInput');
+
+        cityInput.addEventListener('input', debounce(async (e) => {
+            const val = e.target.value.trim();
+            if (val.length < 2) {
+                suggestionsEl.style.display = 'none';
+                return;
+            }
+
+            try {
+                const results = await geocodeCity(val, 100); 
+                if (results && results.length > 0) {
+                    suggestionsEl.innerHTML = results.map(city => `
+                <div class="suggestion-item" 
+                     data-lat="${city.latitude}" 
+                     data-lon="${city.longitude}" 
+                     data-name="${city.name}" 
+                     data-country="${city.country || ''}"
+                     data-admin="${city.admin1 || ''}">
+                    <strong>${city.name}</strong>, ${city.admin1 ? city.admin1 + ', ' : ''}${city.country || ''}
+                </div>
+            `).join('');
+                    suggestionsEl.style.display = 'block';
+                } else {
+                    suggestionsEl.style.display = 'none';
+                }
+            } catch (err) {
+                suggestionsEl.style.display = 'none';
+            }
+        }, 400));
+
+        suggestionsEl.addEventListener('click', (e) => {
+            const item = e.target.closest('.suggestion-item');
+            if (!item) return;
+
+            const cityData = {
+                name: item.dataset.name,
+                latitude: parseFloat(item.dataset.lat),
+                longitude: parseFloat(item.dataset.lon),
+                country: item.dataset.country,
+                admin1: item.dataset.admin
+            };
+
+            cityInput.value = cityData.name;
+            suggestionsEl.style.display = 'none';
+            loadCity(cityData);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#searchForm') && !e.target.closest('#suggestions')) {
+                suggestionsEl.style.display = 'none';
+            }
+        });
+
     </script>
 </body>
 
